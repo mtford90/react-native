@@ -309,6 +309,10 @@ var TextInput = React.createClass({
    */
   mixins: [NativeMethodsMixin, TimerMixin],
 
+   setSelectionRange: function(start: number, end: number): void {
+      this.setNativeProps({selectionRange: {start, end}});
+   },
+
   viewConfig: ((Platform.OS === 'ios' ? RCTTextField.viewConfig :
     (Platform.OS === 'android' ? viewConfigAndroid : {})) : Object),
 
