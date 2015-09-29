@@ -52,12 +52,18 @@ var messageHandlers = {
     window.localStorage.setItem('sessionID', message.id);
     window.location.reload();
   },
-  'executeApplicationScript': function(message, sendReply) {
-    for (var key in message.inject) {
-      window[key] = JSON.parse(message.inject[key]);
-    }
+'executeApplicationScript': function(message, sendReply) {
+  for (var key in message.inject) {
+    window[key] = JSON.parse(message.inject[key]);
+  }
+
+  if(message.url.split(':')[0] === 'file'){
+    var newUrl = 'http://localhost:8081/' + message.url;
+    loadScript(newUrl, sendReply.bind(null, null));
+  } else {
     loadScript(message.url, sendReply.bind(null, null));
-  },
+  }
+},
   'executeJSCall': function(message, sendReply) {
     var returnValue = null;
     try {

@@ -39,7 +39,7 @@ RCT_EXPORT_MODULE()
 
 - (instancetype)init
 {
-  return [self initWithURL:[RCTConvert NSURL:@"http://localhost:8081/debugger-proxy"]];
+  return [self initWithURL:[RCTConvert NSURL:@"http://192.168.1.113:8081/debugger-proxy"]];
 }
 
 - (instancetype)initWithURL:(NSURL *)URL
