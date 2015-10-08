@@ -29,6 +29,11 @@ RCT_EXPORT_MODULE()
   return textField;
 }
 
+- (BOOL)textFieldShouldEndEditing:(RCTTextField *)textField
+{
+  return [textField textFieldShouldEndEditing:textField];
+}
+
 - (BOOL)textField:(RCTTextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string
 {
   if (textField.maxLength == nil || [string isEqualToString:@"\n"]) {  // Make sure forms can be submitted via return
@@ -65,6 +70,7 @@ RCT_EXPORT_VIEW_PROPERTY(maxLength, NSNumber)
 RCT_EXPORT_VIEW_PROPERTY(clearButtonMode, UITextFieldViewMode)
 RCT_REMAP_VIEW_PROPERTY(clearTextOnFocus, clearsOnBeginEditing, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(selectTextOnFocus, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(blurOnSubmit, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(keyboardType, UIKeyboardType)
 RCT_EXPORT_VIEW_PROPERTY(returnKeyType, UIReturnKeyType)
 RCT_EXPORT_VIEW_PROPERTY(enablesReturnKeyAutomatically, BOOL)

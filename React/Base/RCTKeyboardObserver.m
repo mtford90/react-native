@@ -75,9 +75,12 @@ static NSDictionary *RCTRectDictionaryValue(CGRect rect)
 static NSDictionary *RCTParseKeyboardNotification(NSNotification *notification)
 {
   NSDictionary *userInfo = notification.userInfo;
+  NSLog(@"notificatio: %@", notification);
   CGRect beginFrame = [userInfo[UIKeyboardFrameBeginUserInfoKey] CGRectValue];
   CGRect endFrame = [userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
   NSTimeInterval duration = [userInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+  
+
 
   return @{
     @"startCoordinates": RCTRectDictionaryValue(beginFrame),

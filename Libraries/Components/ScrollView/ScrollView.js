@@ -163,7 +163,7 @@ var ScrollView = React.createClass({
     keyboardDismissMode: PropTypes.oneOf([
       'none', // default
       'interactive',
-      'on-drag',
+      'on-drag'
     ]),
     /**
      * When false, tapping outside of the focused text input when the keyboard
