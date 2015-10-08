@@ -61,6 +61,7 @@ RCT_ENUM_CONVERTER(MKMapType, (@{
   shape.hasLeftCallout = [RCTConvert BOOL:json[@"hasLeftCallout"]];
   shape.hasRightCallout = [RCTConvert BOOL:json[@"hasRightCallout"]];
   shape.animateDrop = [RCTConvert BOOL:json[@"animateDrop"]];
+  shape.selectAutomatically = [RCTConvert BOOL:json[@"selectAutomatically"]];
   return shape;
 }
 

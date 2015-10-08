@@ -107,6 +107,8 @@ RCT_CUSTOM_VIEW_PROPERTY(region, MKCoordinateRegion, RCTMap)
 {
   // Pass to js
   RCTPointAnnotation *annotation = (RCTPointAnnotation *)view.annotation;
+  
+  
   NSString *side = (control == view.leftCalloutAccessoryView) ? @"left" : @"right";
 
   NSDictionary *event = @{
@@ -115,6 +117,8 @@ RCT_CUSTOM_VIEW_PROPERTY(region, MKCoordinateRegion, RCTMap)
       @"action": @"callout-click",
       @"annotationId": annotation.identifier
     };
+  
+
 
   [self.bridge.eventDispatcher sendInputEventWithName:@"press" body:event];
 }
@@ -151,6 +155,7 @@ RCT_CUSTOM_VIEW_PROPERTY(region, MKCoordinateRegion, RCTMap)
 {
   [mapView.regionChangeObserveTimer invalidate];
   mapView.regionChangeObserveTimer = nil;
+  
 
   [self _regionChanged:mapView];
 
@@ -161,7 +166,18 @@ RCT_CUSTOM_VIEW_PROPERTY(region, MKCoordinateRegion, RCTMap)
   };
 }
 
-
+-(void)mapViewDidFinishRenderingMap:(MKMapView *)mapView fullyRendered:(BOOL)fullyRendered
+{
+  NSLog(@"Finished! %@", mapView);
+  if ([mapView isKindOfClass:[RCTMap class]]) {
+    NSArray* autoSelect = [(RCTMap*)mapView autoSelectAnnotations];
+    NSLog(@"Autoselect %@", autoSelect);
+    [autoSelect enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+      NSLog(@"Select annotation %@", obj);
+      [mapView selectAnnotation:obj animated:YES];
+    }];
+  }
+}
 
 - (void)mapViewWillStartRenderingMap:(RCTMap *)mapView
 {

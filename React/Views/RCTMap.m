@@ -151,13 +151,19 @@ const CGFloat RCTMapZoomBoundBuffer = 0.01;
   }
 
   NSMutableArray *newIds = [NSMutableArray new];
+  NSMutableArray *selectAutomatically = [NSMutableArray new];
   for (RCTPointAnnotation *anno in self.annotations) {
     if ([anno isKindOfClass:[MKUserLocation class]]) {
       continue;
     }
+
     [newIds addObject:anno.identifier];
+    if (anno.selectAutomatically) {
+      [selectAutomatically addObject:anno];
+    }
   }
   self.annotationIds = newIds;
+  self.autoSelectAnnotations = selectAutomatically;
 }
 
 @end
