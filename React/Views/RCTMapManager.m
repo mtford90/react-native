@@ -99,21 +99,16 @@ RCT_CUSTOM_VIEW_PROPERTY(region, MKCoordinateRegion, RCTMap)
 
 - (void)mapView:(RCTMap *)mapView annotationView:(MKAnnotationView *)view calloutAccessoryControlTapped:(UIControl *)control
 {
-  // Pass to js
-  RCTPointAnnotation *annotation = (RCTPointAnnotation *)view.annotation;
-  
-  NSString *side = (control == view.leftCalloutAccessoryView) ? @"left" : @"right";
-  if (mapView.onPress) {
+   if (mapView.onPress) {
+
     // Pass to js
     RCTPointAnnotation *annotation = (RCTPointAnnotation *)view.annotation;
     mapView.onPress(@{
       @"side": (control == view.leftCalloutAccessoryView) ? @"left" : @"right",
       @"action": @"callout-click",
       @"annotationId": annotation.identifier
-    };
+    });
   }
-
-  [self.bridge.eventDispatcher sendInputEventWithName:@"press" body:event];
 }
 
 - (void)mapView:(RCTMap *)mapView didUpdateUserLocation:(MKUserLocation *)location
