@@ -64,6 +64,12 @@ RCT_EXPORT_MODULE()
   return self;
 }
 
+
++ (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
+{
+  
+}
+
 - (void)dealloc
 {
   [[NSNotificationCenter defaultCenter] removeObserver:self];
