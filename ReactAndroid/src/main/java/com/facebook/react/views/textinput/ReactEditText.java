@@ -54,6 +54,7 @@ public class ReactEditText extends EditText {
   private int mNativeEventCount;
   private @Nullable ArrayList<TextWatcher> mListeners;
   private @Nullable TextWatcherDelegator mTextWatcherDelegator;
+  private int mStagedInputType;
 
   public ReactEditText(Context context) {
     super(context);
@@ -69,6 +70,7 @@ public class ReactEditText extends EditText {
     mIsJSSettingFocus = false;
     mListeners = null;
     mTextWatcherDelegator = null;
+    mStagedInputType = getInputType();
   }
 
   // After the text changes inside an EditText, TextView checks if a layout() has been requested.
@@ -103,6 +105,11 @@ public class ReactEditText extends EditText {
 
   @Override
   public boolean requestFocus(int direction, Rect previouslyFocusedRect) {
+    // Always return true if we are already focused. This is used by android in certain places,
+    // such as text selection.
+    if (isFocused()) {
+      return true;
+    }
     if (!mIsJSSettingFocus) {
       return false;
     }
@@ -132,6 +139,26 @@ public class ReactEditText extends EditText {
         super.removeTextChangedListener(getTextWatcherDelegator());
       }
     }
+  }
+
+  /*protected*/ int getStagedInputType() {
+    return mStagedInputType;
+  }
+
+  /*package*/ void setStagedInputType(int stagedInputType) {
+    mStagedInputType = stagedInputType;
+  }
+
+  /*package*/ void commitStagedInputType() {
+    if (getInputType() != mStagedInputType) {
+      setInputType(mStagedInputType);
+    }
+  }
+
+  @Override
+  public void setInputType(int type) {
+    super.setInputType(type);
+    mStagedInputType = type;
   }
 
   /* package */ void requestFocusFromJS() {
