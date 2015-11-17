@@ -86,6 +86,11 @@ type Event = Object;
  * ```
  */
 var TextInput = React.createClass({
+  statics: {
+    /* TODO(brentvatne) docs are needed for this */
+    State: TextInputState,
+  },
+
   propTypes: {
     /**
      * Can tell TextInput to automatically capitalize certain characters.
@@ -221,6 +226,13 @@ var TextInput = React.createClass({
      * Callback that is called when the text input's submit button is pressed.
      */
     onSubmitEditing: PropTypes.func,
+    /**
+     * Callback that is called when a key is pressed.
+     * Pressed key value is passed as an argument to the callback handler.
+     * Fires before onChange callbacks.
+     * @platform ios
+     */
+    onKeyPress: PropTypes.func,
     /**
      * Invoked on mount and layout changes with `{x, y, width, height}`.
      */
@@ -543,13 +555,16 @@ var TextInput = React.createClass({
     this.props.onChange && this.props.onChange(event);
     this.props.onChangeText && this.props.onChangeText(text);
     this.setState({mostRecentEventCount: eventCount}, () => {
-      // This is a controlled component, so make sure to force the native value
-      // to match.  Most usage shouldn't need this, but if it does this will be
-      // more correct but might flicker a bit and/or cause the cursor to jump.
-      if (text !== this.props.value && typeof this.props.value === 'string') {
-        this.refs.input.setNativeProps({
-          text: this.props.value,
-        });
+      // NOTE: this doesn't seem to be needed on iOS - keeping for now in case it's required on Android
+      if (Platform.OS === 'android') {
+        // This is a controlled component, so make sure to force the native value
+        // to match.  Most usage shouldn't need this, but if it does this will be
+        // more correct but might flicker a bit and/or cause the cursor to jump.
+        if (text !== this.props.value && typeof this.props.value === 'string') {
+          this.refs.input.setNativeProps({
+            text: this.props.value,
+          });
+        }
       }
     });
   },

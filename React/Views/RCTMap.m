@@ -109,9 +109,9 @@ const CGFloat RCTMapZoomBoundBuffer = 0.01;
 
 - (void)setAnnotations:(RCTPointAnnotationArray *)annotations
 {
-  NSMutableArray *newAnnotationIds = [NSMutableArray new];
-  NSMutableArray *annotationsToDelete = [NSMutableArray new];
-  NSMutableArray *annotationsToAdd = [NSMutableArray new];
+  NSMutableArray<NSString *> *newAnnotationIds = [NSMutableArray new];
+  NSMutableArray<RCTPointAnnotation *> *annotationsToDelete = [NSMutableArray new];
+  NSMutableArray<RCTPointAnnotation *> *annotationsToAdd = [NSMutableArray new];
 
   for (RCTPointAnnotation *annotation in annotations) {
     if (![annotation isKindOfClass:[RCTPointAnnotation class]]) {
@@ -138,23 +138,22 @@ const CGFloat RCTMapZoomBoundBuffer = 0.01;
   }
 
   if (annotationsToDelete.count) {
-    [self removeAnnotations:annotationsToDelete];
+    [self removeAnnotations:(NSArray<id<MKAnnotation>> *)annotationsToDelete];
   }
 
   if (annotationsToAdd.count) {
-    [self addAnnotations:annotationsToAdd];
+    [self addAnnotations:(NSArray<id<MKAnnotation>> *)annotationsToAdd];
   }
 
-  NSMutableArray *newIds = [NSMutableArray new];
+  NSMutableArray<NSString *> *newIds = [NSMutableArray new];
   NSMutableArray *selectAutomatically = [NSMutableArray new];
-  for (RCTPointAnnotation *anno in self.annotations) {
-    if ([anno isKindOfClass:[MKUserLocation class]]) {
+  for (RCTPointAnnotation *annotation in self.annotations) {
+    if ([annotation isKindOfClass:[MKUserLocation class]]) {
       continue;
     }
-
-    [newIds addObject:anno.identifier];
-    if (anno.selectAutomatically) {
-      [selectAutomatically addObject:anno];
+    [newIds addObject:annotation.identifier];
+    if (annotation.selectAutomatically) {
+      [selectAutomatically addObject:annotation];
     }
   }
   self.annotationIds = newIds;

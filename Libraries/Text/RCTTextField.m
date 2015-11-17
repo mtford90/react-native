@@ -17,7 +17,7 @@
 @implementation RCTTextField
 {
   RCTEventDispatcher *_eventDispatcher;
-  NSMutableArray *_reactSubviews;
+  NSMutableArray<UIView *> *_reactSubviews;
   BOOL _jsRequestingFirstResponder;
   NSInteger _nativeEventCount;
   BOOL _submitted;
@@ -40,6 +40,15 @@
 RCT_NOT_IMPLEMENTED(- (instancetype)initWithFrame:(CGRect)frame)
 RCT_NOT_IMPLEMENTED(- (instancetype)initWithCoder:(NSCoder *)aDecoder)
 
+- (void)sendKeyValueForString:(NSString *)string
+{
+  [_eventDispatcher sendTextEventWithType:RCTTextEventTypeKeyPress
+                                 reactTag:self.reactTag
+                                     text:nil
+                                      key:string
+                               eventCount:_nativeEventCount];
+}
+
 - (void)setSelectionRange:(NSDictionary *)selectionRange
 {
   NSInteger eventLag = _nativeEventCount - _mostRecentEventCount;
@@ -55,6 +64,14 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithCoder:(NSCoder *)aDecoder)
   } else if (eventLag > RCTTextUpdateLagWarningThreshold) {
     RCTLogWarn(@"Native TextInput(%@) is %zd events ahead of JS - try to make your JS faster.", self.text, eventLag);
   }
+}
+
+// This method is overriden for `onKeyPress`. The manager
+// will not send a keyPress for text that was pasted.
+- (void)paste:(id)sender
+{
+  _textWasPasted = YES;
+  [super paste:sender];
 }
 
 
@@ -94,7 +111,7 @@ static void RCTUpdatePlaceholder(RCTTextField *self)
   RCTUpdatePlaceholder(self);
 }
 
-- (NSArray *)reactSubviews
+- (NSArray<UIView *> *)reactSubviews
 {
   // TODO: do we support subviews of textfield in React?
   // In any case, we should have a better approach than manually
@@ -153,6 +170,7 @@ static void RCTUpdatePlaceholder(RCTTextField *self)
   [_eventDispatcher sendTextEventWithType:RCTTextEventTypeChange
                                  reactTag:self.reactTag
                                      text:self.text
+                                      key:nil
                                eventCount:_nativeEventCount];
 }
 
@@ -161,6 +179,7 @@ static void RCTUpdatePlaceholder(RCTTextField *self)
   [_eventDispatcher sendTextEventWithType:RCTTextEventTypeEnd
                                  reactTag:self.reactTag
                                      text:self.text
+                                      key:nil
                                eventCount:_nativeEventCount];
 }
 - (void)textFieldSubmitEditing
@@ -169,6 +188,7 @@ static void RCTUpdatePlaceholder(RCTTextField *self)
   [_eventDispatcher sendTextEventWithType:RCTTextEventTypeSubmit
                                  reactTag:self.reactTag
                                      text:self.text
+                                      key:nil
                                eventCount:_nativeEventCount];
 }
 
@@ -182,6 +202,7 @@ static void RCTUpdatePlaceholder(RCTTextField *self)
   [_eventDispatcher sendTextEventWithType:RCTTextEventTypeFocus
                                  reactTag:self.reactTag
                                      text:self.text
+                                      key:nil
                                eventCount:_nativeEventCount];
 }
 
@@ -210,6 +231,7 @@ static void RCTUpdatePlaceholder(RCTTextField *self)
     [_eventDispatcher sendTextEventWithType:RCTTextEventTypeBlur
                                    reactTag:self.reactTag
                                        text:self.text
+                                        key:nil
                                  eventCount:_nativeEventCount];
   }
   return result;
