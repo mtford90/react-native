@@ -39,9 +39,7 @@ var onlyMultiline = {
 };
 
 var notMultiline = {
-  onSubmitEditing: true,
-  autoGrow: PropTypes.bool,
-  maxHeight: PropTypes.number
+  onSubmitEditing: true
 };
 
 if (Platform.OS === 'android') {
@@ -114,6 +112,16 @@ var TextInput = React.createClass({
      * If false, disables auto-correct. The default value is true.
      */
     autoCorrect: PropTypes.bool,
+    /**
+     * If true, and the input is multiline, the input's height will grow automatically. The default value is false.
+     * @platorm ios
+     */
+    autoGrow: PropTypes.bool,
+    /**
+     * The maximum height the input should grow to when autoGrow is true.
+     * @platorm ios
+     */
+    maxHeight: PropTypes.number,
     /**
      * If true, focuses the input on componentDidMount.
      * The default value is false.
@@ -600,3 +608,4 @@ var styles = StyleSheet.create({
 });
 
 module.exports = TextInput;
+
