@@ -34,10 +34,14 @@ var onlyMultiline = {
   onSelectionChange: true, // not supported in Open Source yet
   onTextInput: true, // not supported in Open Source yet
   children: true,
+  autoGrow: true,
+  maxHeight: true
 };
 
 var notMultiline = {
   onSubmitEditing: true,
+  autoGrow: PropTypes.bool,
+  maxHeight: PropTypes.number
 };
 
 if (Platform.OS === 'android') {
