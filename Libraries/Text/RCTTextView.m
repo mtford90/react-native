@@ -48,6 +48,7 @@
   NSAttributedString *_pendingAttributedText;
   NSMutableArray<UIView<RCTComponent> *> *_subviews;
   BOOL _blockTextShouldChange;
+  BOOL _allowNewlines;
 }
 
 - (instancetype)initWithBridge:(RCTBridge *)bridge
@@ -56,8 +57,9 @@
   if ((self = [super initWithFrame:CGRectZero])) {
     _bridge = bridge;
     _autoGrow = false;
+    _allowNewlines = true;
     _contentInset = UIEdgeInsetsZero;
-    
+
     _eventDispatcher = _bridge.eventDispatcher;
     _placeholderTextColor = [self defaultPlaceholderTextColor];
 
@@ -233,7 +235,7 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithCoder:(NSCoder *)aDecoder)
     if (_maxHeight > _origHeight) {
       newHeight = fminf(newHeight, _maxHeight);
     }
-    
+
     if (newHeight != currentHeight) {
       CGRect newFrame = CGRectMake(0, 0, self.frame.size.width, newHeight);
       [_bridge.uiManager setFrame:newFrame
@@ -292,8 +294,25 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithCoder:(NSCoder *)aDecoder)
   return _textView.text;
 }
 
+- (void) returnKeyPressed
+{
+  [_eventDispatcher sendTextEventWithType:RCTTextEventTypeSubmit
+                                 reactTag:self.reactTag
+                                     text:self.text
+                                      key:nil
+                               eventCount:_nativeEventCount];
+}
+
 - (BOOL)textView:(RCTUITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text
 {
+  NSRange resultRange =
+  [text rangeOfCharacterFromSet:[NSCharacterSet newlineCharacterSet]
+                        options:NSBackwardsSearch];
+  if ([text length] == 1 && resultRange.location != NSNotFound) {
+    [self returnKeyPressed];
+    return NO;
+  }
+
   if (_blockTextShouldChange) {
     return NO;
   }
@@ -353,8 +372,9 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithCoder:(NSCoder *)aDecoder)
 - (void)setText:(NSString *)text
 {
   NSInteger eventLag = _nativeEventCount - _mostRecentEventCount;
-  // For some reason eventLag is always 1 preventing text updates... Removed that check for now
-  // if (eventLag == 0 && ![text isEqualToString:_textView.text]) {
+//  if (eventLag == 0 && ![text isEqualToString:_textView.text]) {
+
+  // Event lag appears to be bugged out and stuck at 1... therefore removed the check for now
   if (![text isEqualToString:_textView.text]) {
     UITextRange *selection = _textView.selectedTextRange;
     _textView.text = text;
@@ -388,6 +408,12 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithCoder:(NSCoder *)aDecoder)
 - (void)setAutoGrow:(BOOL)autoGrow
 {
   _autoGrow = autoGrow;
+}
+
+
+- (void)setAllowNewlines:(BOOL)allowNewlines
+{
+  _allowNewlines = allowNewlines;
 }
 
 - (void)setMaxHeight:(float)maxHeight
@@ -484,5 +510,7 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithCoder:(NSCoder *)aDecoder)
 {
   return [UIColor colorWithRed:0.0/255.0 green:0.0/255.0 blue:0.098/255.0 alpha:0.22];
 }
+
+
 
 @end

@@ -35,11 +35,11 @@ var onlyMultiline = {
   onTextInput: true, // not supported in Open Source yet
   children: true,
   autoGrow: true,
+  allowNewlines: true,
   maxHeight: true
 };
 
 var notMultiline = {
-  onSubmitEditing: true
 };
 
 if (Platform.OS === 'android') {
@@ -122,6 +122,7 @@ var TextInput = React.createClass({
      * @platorm ios
      */
     maxHeight: PropTypes.number,
+    allowNewlines: PropTypes.bool,
     /**
      * If true, focuses the input on componentDidMount.
      * The default value is false.
@@ -306,7 +307,7 @@ var TextInput = React.createClass({
     selectTextOnFocus: PropTypes.bool,
     /**
      * If true, the text field will blur when submitted.
-    * The default value is true.
+     * The default value is true.
      * @platform ios
      */
     blurOnSubmit: PropTypes.bool,
@@ -326,279 +327,279 @@ var TextInput = React.createClass({
   },
 
   getDefaultProps: function(): DefaultProps {
-    return {
-      blurOnSubmit: true,
-    };
-  },
+  return {
+    blurOnSubmit: true,
+  };
+},
 
 
-  /**
-   * `NativeMethodsMixin` will look for this when invoking `setNativeProps`. We
-   * make `this` look like an actual native component class.
-   */
-  mixins: [NativeMethodsMixin, TimerMixin],
+/**
+ * `NativeMethodsMixin` will look for this when invoking `setNativeProps`. We
+ * make `this` look like an actual native component class.
+ */
+mixins: [NativeMethodsMixin, TimerMixin],
 
-   setSelectionRange: function(start: number, end: number): void {
-      this.setNativeProps({selectionRange: {start, end}});
-   },
+  setSelectionRange: function(start: number, end: number): void {
+  this.setNativeProps({selectionRange: {start, end}});
+},
 
-  viewConfig: ((Platform.OS === 'ios' ? RCTTextField.viewConfig :
-    (Platform.OS === 'android' ? AndroidTextInput.viewConfig : {})) : Object),
+viewConfig: ((Platform.OS === 'ios' ? RCTTextField.viewConfig :
+  (Platform.OS === 'android' ? AndroidTextInput.viewConfig : {})) : Object),
 
-  isFocused: function(): boolean {
-    return TextInputState.currentlyFocusedField() ===
-      React.findNodeHandle(this.refs.input);
-  },
+isFocused: function(): boolean {
+  return TextInputState.currentlyFocusedField() ===
+    React.findNodeHandle(this.refs.input);
+},
 
-  getInitialState: function() {
-    return {
-      mostRecentEventCount: 0,
-    };
-  },
+getInitialState: function() {
+  return {
+    mostRecentEventCount: 0,
+  };
+},
 
-  contextTypes: {
-    onFocusRequested: React.PropTypes.func,
+contextTypes: {
+  onFocusRequested: React.PropTypes.func,
     focusEmitter: React.PropTypes.instanceOf(EventEmitter),
-  },
+},
 
-  _focusSubscription: (undefined: ?Function),
+_focusSubscription: (undefined: ?Function),
 
-  componentDidMount: function() {
-    if (!this.context.focusEmitter) {
-      if (this.props.autoFocus) {
-        this.requestAnimationFrame(this.focus);
-      }
-      return;
+componentDidMount: function() {
+  if (!this.context.focusEmitter) {
+    if (this.props.autoFocus) {
+      this.requestAnimationFrame(this.focus);
     }
-    this._focusSubscription = this.context.focusEmitter.addListener(
+    return;
+  }
+  this._focusSubscription = this.context.focusEmitter.addListener(
       'focus',
       (el) => {
-        if (this === el) {
-          this.requestAnimationFrame(this.focus);
-        } else if (this.isFocused()) {
-          this.blur();
-        }
+      if (this === el) {
+    this.requestAnimationFrame(this.focus);
+  } else if (this.isFocused()) {
+    this.blur();
+  }
+}
+);
+  if (this.props.autoFocus) {
+    this.context.onFocusRequested(this);
+  }
+},
+
+componentWillUnmount: function() {
+  this._focusSubscription && this._focusSubscription.remove();
+  if (this.isFocused()) {
+    this.blur();
+  }
+},
+
+getChildContext: function(): Object {
+  return {isInAParentText: true};
+},
+
+childContextTypes: {
+  isInAParentText: React.PropTypes.bool
+},
+
+clear: function() {
+  this.setNativeProps({text: ''});
+},
+
+render: function() {
+  if (Platform.OS === 'ios') {
+    return this._renderIOS();
+  } else if (Platform.OS === 'android') {
+    return this._renderAndroid();
+  }
+},
+
+_getText: function(): ?string {
+  return typeof this.props.value === 'string' ?
+    this.props.value :
+    this.props.defaultValue;
+},
+
+_renderIOS: function() {
+  var textContainer;
+
+  var props = Object.assign({}, this.props);
+  props.style = [styles.input, this.props.style];
+  if (!props.multiline) {
+    for (var propKey in onlyMultiline) {
+      if (props[propKey]) {
+        throw new Error(
+          'TextInput prop `' + propKey + '` is only supported with multiline.'
+        );
       }
-    );
-    if (this.props.autoFocus) {
-      this.context.onFocusRequested(this);
     }
-  },
-
-  componentWillUnmount: function() {
-    this._focusSubscription && this._focusSubscription.remove();
-    if (this.isFocused()) {
-      this.blur();
-    }
-  },
-
-  getChildContext: function(): Object {
-    return {isInAParentText: true};
-  },
-
-  childContextTypes: {
-    isInAParentText: React.PropTypes.bool
-  },
-
-  clear: function() {
-    this.setNativeProps({text: ''});
-  },
-
-  render: function() {
-    if (Platform.OS === 'ios') {
-      return this._renderIOS();
-    } else if (Platform.OS === 'android') {
-      return this._renderAndroid();
-    }
-  },
-
-  _getText: function(): ?string {
-    return typeof this.props.value === 'string' ?
-      this.props.value :
-      this.props.defaultValue;
-  },
-
-  _renderIOS: function() {
-    var textContainer;
-
-    var props = Object.assign({}, this.props);
-    props.style = [styles.input, this.props.style];
-    if (!props.multiline) {
-      for (var propKey in onlyMultiline) {
-        if (props[propKey]) {
-          throw new Error(
-            'TextInput prop `' + propKey + '` is only supported with multiline.'
-          );
-        }
+    textContainer =
+  <RCTTextField
+    ref="input"
+    {...props}
+    onFocus={this._onFocus}
+    onBlur={this._onBlur}
+    onChange={this._onChange}
+    onSelectionChangeShouldSetResponder={() => true}
+    text={this._getText()}
+    mostRecentEventCount={this.state.mostRecentEventCount}
+  />;
+  } else {
+    for (var propKey in notMultiline) {
+      if (props[propKey]) {
+        throw new Error(
+          'TextInput prop `' + propKey + '` cannot be used with multiline.'
+        );
       }
-      textContainer =
-        <RCTTextField
-          ref="input"
-          {...props}
-          onFocus={this._onFocus}
-          onBlur={this._onBlur}
-          onChange={this._onChange}
-          onSelectionChangeShouldSetResponder={() => true}
-          text={this._getText()}
-          mostRecentEventCount={this.state.mostRecentEventCount}
-        />;
-    } else {
-      for (var propKey in notMultiline) {
-        if (props[propKey]) {
-          throw new Error(
-            'TextInput prop `' + propKey + '` cannot be used with multiline.'
-          );
-        }
-      }
-
-      var children = props.children;
-      var childCount = 0;
-      ReactChildren.forEach(children, () => ++childCount);
-      invariant(
-        !(props.value && childCount),
-        'Cannot specify both value and children.'
-      );
-      if (childCount > 1) {
-        children = <Text>{children}</Text>;
-      }
-      if (props.inputView) {
-        children = [children, props.inputView];
-      }
-      textContainer =
-        <RCTTextView
-          ref="input"
-          {...props}
-          children={children}
-          mostRecentEventCount={this.state.mostRecentEventCount}
-          onFocus={this._onFocus}
-          onBlur={this._onBlur}
-          onChange={this._onChange}
-          onSelectionChange={this._onSelectionChange}
-          onTextInput={this._onTextInput}
-          onSelectionChangeShouldSetResponder={emptyFunction.thatReturnsTrue}
-          text={this._getText()}
-        />;
     }
 
-    return (
-      <TouchableWithoutFeedback
-        onPress={this._onPress}
-        rejectResponderTermination={true}
-        testID={props.testID}>
-        {textContainer}
-      </TouchableWithoutFeedback>
-    );
-  },
-
-  _renderAndroid: function() {
-    var autoCapitalize = RCTUIManager.UIText.AutocapitalizationType[this.props.autoCapitalize];
-    var textAlign =
-      RCTUIManager.AndroidTextInput.Constants.TextAlign[this.props.textAlign];
-    var textAlignVertical =
-      RCTUIManager.AndroidTextInput.Constants.TextAlignVertical[this.props.textAlignVertical];
-    var children = this.props.children;
+    var children = props.children;
     var childCount = 0;
     ReactChildren.forEach(children, () => ++childCount);
     invariant(
-      !(this.props.value && childCount),
+      !(props.value && childCount),
       'Cannot specify both value and children.'
     );
     if (childCount > 1) {
       children = <Text>{children}</Text>;
     }
-    var textContainer =
-      <AndroidTextInput
-        ref="input"
-        style={[this.props.style]}
-        autoCapitalize={autoCapitalize}
-        autoCorrect={this.props.autoCorrect}
-        textAlign={textAlign}
-        textAlignVertical={textAlignVertical}
-        keyboardType={this.props.keyboardType}
-        mostRecentEventCount={this.state.mostRecentEventCount}
-        multiline={this.props.multiline}
-        numberOfLines={this.props.numberOfLines}
-        onFocus={this._onFocus}
-        onBlur={this._onBlur}
-        onChange={this._onChange}
-        onTextInput={this._onTextInput}
-        onEndEditing={this.props.onEndEditing}
-        onSubmitEditing={this.props.onSubmitEditing}
-        onLayout={this.props.onLayout}
-        password={this.props.password || this.props.secureTextEntry}
-        placeholder={this.props.placeholder}
-        placeholderTextColor={this.props.placeholderTextColor}
-        text={this._getText()}
-        underlineColorAndroid={this.props.underlineColorAndroid}
-        children={children}
-        editable={this.props.editable}
-      />;
-
-    return (
-      <TouchableWithoutFeedback
-        onPress={this._onPress}
-        testID={this.props.testID}>
-        {textContainer}
-      </TouchableWithoutFeedback>
-    );
-  },
-
-  _onFocus: function(event: Event) {
-    if (this.props.onFocus) {
-      this.props.onFocus(event);
+    if (props.inputView) {
+      children = [children, props.inputView];
     }
-  },
+    textContainer =
+  <RCTTextView
+    ref="input"
+    {...props}
+    children={children}
+    mostRecentEventCount={this.state.mostRecentEventCount}
+    onFocus={this._onFocus}
+    onBlur={this._onBlur}
+    onChange={this._onChange}
+    onSelectionChange={this._onSelectionChange}
+    onTextInput={this._onTextInput}
+    onSelectionChangeShouldSetResponder={emptyFunction.thatReturnsTrue}
+    text={this._getText()}
+  />;
+  }
 
-  _onPress: function(event: Event) {
-    if (this.props.editable || this.props.editable === undefined) {
-      this.focus();
-    }
-  },
+  return (
+    <TouchableWithoutFeedback
+  onPress={this._onPress}
+  rejectResponderTermination={true}
+  testID={props.testID}>
+  {textContainer}
+</TouchableWithoutFeedback>
+);
+},
 
-  _onChange: function(event: Event) {
+_renderAndroid: function() {
+  var autoCapitalize = RCTUIManager.UIText.AutocapitalizationType[this.props.autoCapitalize];
+  var textAlign =
+    RCTUIManager.AndroidTextInput.Constants.TextAlign[this.props.textAlign];
+  var textAlignVertical =
+    RCTUIManager.AndroidTextInput.Constants.TextAlignVertical[this.props.textAlignVertical];
+  var children = this.props.children;
+  var childCount = 0;
+  ReactChildren.forEach(children, () => ++childCount);
+  invariant(
+    !(this.props.value && childCount),
+    'Cannot specify both value and children.'
+  );
+  if (childCount > 1) {
+    children = <Text>{children}</Text>;
+  }
+  var textContainer =
+<AndroidTextInput
+  ref="input"
+  style={[this.props.style]}
+  autoCapitalize={autoCapitalize}
+  autoCorrect={this.props.autoCorrect}
+  textAlign={textAlign}
+  textAlignVertical={textAlignVertical}
+  keyboardType={this.props.keyboardType}
+  mostRecentEventCount={this.state.mostRecentEventCount}
+  multiline={this.props.multiline}
+  numberOfLines={this.props.numberOfLines}
+  onFocus={this._onFocus}
+  onBlur={this._onBlur}
+  onChange={this._onChange}
+  onTextInput={this._onTextInput}
+  onEndEditing={this.props.onEndEditing}
+  onSubmitEditing={this.props.onSubmitEditing}
+  onLayout={this.props.onLayout}
+  password={this.props.password || this.props.secureTextEntry}
+  placeholder={this.props.placeholder}
+  placeholderTextColor={this.props.placeholderTextColor}
+  text={this._getText()}
+  underlineColorAndroid={this.props.underlineColorAndroid}
+  children={children}
+  editable={this.props.editable}
+/>;
+
+  return (
+    <TouchableWithoutFeedback
+  onPress={this._onPress}
+  testID={this.props.testID}>
+  {textContainer}
+</TouchableWithoutFeedback>
+);
+},
+
+_onFocus: function(event: Event) {
+  if (this.props.onFocus) {
+    this.props.onFocus(event);
+  }
+},
+
+_onPress: function(event: Event) {
+  if (this.props.editable || this.props.editable === undefined) {
+    this.focus();
+  }
+},
+
+_onChange: function(event: Event) {
+  if (Platform.OS === 'android') {
+    // Android expects the event count to be updated as soon as possible.
+    this.refs.input.setNativeProps({
+      mostRecentEventCount: event.nativeEvent.eventCount,
+    });
+  }
+  var text = event.nativeEvent.text;
+  var eventCount = event.nativeEvent.eventCount;
+  this.props.onChange && this.props.onChange(event);
+  this.props.onChangeText && this.props.onChangeText(text);
+  this.setState({mostRecentEventCount: eventCount}, () => {
+    // NOTE: this doesn't seem to be needed on iOS - keeping for now in case it's required on Android
     if (Platform.OS === 'android') {
-      // Android expects the event count to be updated as soon as possible.
+    // This is a controlled component, so make sure to force the native value
+    // to match.  Most usage shouldn't need this, but if it does this will be
+    // more correct but might flicker a bit and/or cause the cursor to jump.
+    if (text !== this.props.value && typeof this.props.value === 'string') {
       this.refs.input.setNativeProps({
-        mostRecentEventCount: event.nativeEvent.eventCount,
+        text: this.props.value,
       });
     }
-    var text = event.nativeEvent.text;
-    var eventCount = event.nativeEvent.eventCount;
-    this.props.onChange && this.props.onChange(event);
-    this.props.onChangeText && this.props.onChangeText(text);
-    this.setState({mostRecentEventCount: eventCount}, () => {
-      // NOTE: this doesn't seem to be needed on iOS - keeping for now in case it's required on Android
-      if (Platform.OS === 'android') {
-        // This is a controlled component, so make sure to force the native value
-        // to match.  Most usage shouldn't need this, but if it does this will be
-        // more correct but might flicker a bit and/or cause the cursor to jump.
-        if (text !== this.props.value && typeof this.props.value === 'string') {
-          this.refs.input.setNativeProps({
-            text: this.props.value,
-          });
-        }
-      }
-    });
-  },
+  }
+});
+},
 
-  _onBlur: function(event: Event) {
-    this.blur();
-    if (this.props.onBlur) {
-      this.props.onBlur(event);
-    }
-  },
+_onBlur: function(event: Event) {
+  this.blur();
+  if (this.props.onBlur) {
+    this.props.onBlur(event);
+  }
+},
 
-  _onSelectionChange: function(event: Event) {
-    if (this.props.selectionState) {
-      var selection = event.nativeEvent.selection;
-      this.props.selectionState.update(selection.start, selection.end);
-    }
-    this.props.onSelectionChange && this.props.onSelectionChange(event);
-  },
+_onSelectionChange: function(event: Event) {
+  if (this.props.selectionState) {
+    var selection = event.nativeEvent.selection;
+    this.props.selectionState.update(selection.start, selection.end);
+  }
+  this.props.onSelectionChange && this.props.onSelectionChange(event);
+},
 
-  _onTextInput: function(event: Event) {
-    this.props.onTextInput && this.props.onTextInput(event);
-  },
+_onTextInput: function(event: Event) {
+  this.props.onTextInput && this.props.onTextInput(event);
+},
 });
 
 var styles = StyleSheet.create({

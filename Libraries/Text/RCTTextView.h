@@ -30,6 +30,7 @@
 @property (nonatomic, strong) UIFont *font;
 @property (nonatomic, assign) NSInteger mostRecentEventCount;
 @property (nonatomic, strong) NSNumber *maxLength;
+@property (nonatomic, assign) BOOL allowNewlines;
 
 - (instancetype)initWithBridge:(RCTBridge *)bridge NS_DESIGNATED_INITIALIZER;
 - (void)performTextUpdate;
