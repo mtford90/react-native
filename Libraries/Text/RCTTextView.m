@@ -353,7 +353,9 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithCoder:(NSCoder *)aDecoder)
 - (void)setText:(NSString *)text
 {
   NSInteger eventLag = _nativeEventCount - _mostRecentEventCount;
-  if (eventLag == 0 && ![text isEqualToString:_textView.text]) {
+  // For some reason eventLag is always 1 preventing text updates... Removed that check for now
+  // if (eventLag == 0 && ![text isEqualToString:_textView.text]) {
+  if (![text isEqualToString:_textView.text]) {
     UITextRange *selection = _textView.selectedTextRange;
     _textView.text = text;
     [self _setPlaceholderVisibility];
